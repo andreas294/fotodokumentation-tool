@@ -16,8 +16,8 @@ This is a Fotodokumentation-Tool built with FastAPI. It allows users to upload i
 
 1. Clone the repository:
 
-    ```sh
-    git clone     git clone https://github.com/angerner/fotodokumentation-tool.git
+     ```sh
+    git clone https://github.com/andreas294/fotodokumentation-tool.git
     cd fotodokumentation-tool
     ```
 
