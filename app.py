@@ -483,10 +483,10 @@ async def generate_pdf(form_data: GeneratePDFRequest):
 
         # Save the PDF to the uploads directory
         filename = f"{safe_title}_Fotodokumentation.pdf"
-        save_path = os.path.join(DOWNLOADS_DIR, filename)
+        save_path = os.path.join(UPLOAD_DIR, filename)
         
         # Ensure the directory exists
-        os.makedirs(DOWNLOADS_DIR, exist_ok=True)
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
         
         # Save the PDF
         try:
@@ -500,7 +500,7 @@ async def generate_pdf(form_data: GeneratePDFRequest):
         logging.debug(f"PDF saved at {save_path}")
         
         # Return the PDF URL as a response
-        return {"pdf_url": f"/downloads/{filename}"}
+        return {"pdf_url": f"/{UPLOAD_DIR}/{filename}"}
         
     except Exception as e:
         logging.error(f"Error in generate_pdf: {e}")
