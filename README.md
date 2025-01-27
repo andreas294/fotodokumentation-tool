@@ -1,4 +1,3 @@
-
 # Fotodokumentation-Tool
 
 This is a Fotodokumentation-Tool built with FastAPI. It allows users to upload images, preview them, and generate a PDF document with metadata and captions.
@@ -16,7 +15,7 @@ This is a Fotodokumentation-Tool built with FastAPI. It allows users to upload i
 
 1. Clone the repository:
 
-     ```sh
+    ```sh
     git clone https://github.com/andreas294/fotodokumentation-tool.git
     cd fotodokumentation-tool
     ```
@@ -44,6 +43,24 @@ This is a Fotodokumentation-Tool built with FastAPI. It allows users to upload i
 
 2. Open your browser and navigate to `http://127.0.0.1:8000` to access the application.
 
+## Deployment
+
+To deploy this application to a platform that uses a `Procfile` (e.g., Heroku), follow these steps:
+
+1. Ensure you have a `Procfile` in the root directory of your project with the following content:
+
+    ```plaintext
+    web: uvicorn app:app --host 0.0.0.0 --port $PORT
+    ```
+
+2. Ensure you have a `runtime.txt` file specifying the Python version:
+
+    ```plaintext
+    python-3.9.7
+    ```
+
+3. Deploy the application using the platform's deployment instructions.
+
 ## Endpoints
 
 - `GET /`: Home page to upload images
@@ -58,6 +75,8 @@ This is a Fotodokumentation-Tool built with FastAPI. It allows users to upload i
 fotodokumentation-tool/
 ├── app.py
 ├── requirements.txt
+├── Procfile
+├── runtime.txt
 ├── templates/
 │   └── index.html
 └── uploads/
