@@ -154,6 +154,11 @@
         .rotation-buttons button.selected {
             background-color: #003f7f;
         }
+        #upload-loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -161,9 +166,9 @@
         <h1>Fotodokumentation-Tool</h1>
         <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
             <label for="title">Title:</label>
-            <input type="text" id="title" name="title" required>
+            <input type="text" id="title" name="title" required maxlength="30">
 
-            <label for="date">Date:</label>
+            <label for="date">Date of exploration:</label>
             <input type="date" id="date" name="date" required>
 
             <label for="images">Images:</label>
@@ -171,6 +176,11 @@
 
             <input type="submit" value="Upload/ update data">
         </form>
+
+        <div id="upload-loading">
+            <div class="spinner"></div>
+            <p>Uploading data, please wait...</p>
+        </div>
 
         <div id="preview-section" style="display: none;">
             <h2>Preview Images</h2>
@@ -206,10 +216,13 @@
         document.getElementById('uploadForm').addEventListener('submit', function(event) {
             event.preventDefault();
             const formData = new FormData(event.target);
+            const uploadLoading = document.getElementById('upload-loading');
+            uploadLoading.style.display = 'block';
             fetch('/upload', {
                 method: 'POST',
                 body: formData
             }).then(response => response.json()).then(data => {
+                uploadLoading.style.display = 'none';
                 const previewSection = document.getElementById('preview-section');
                 previewSection.style.display = 'block';
                 // Improved scroll with a slight delay to ensure elements are rendered
@@ -230,22 +243,23 @@
                     const metadata = data.metadata[index];
                     imageItem.innerHTML = `
                         <img src="${image}" alt="Image"><br>
+                        <label>Rotations (clockwise):</label>
                         <div class="rotation-buttons">
-                            <button type="button" onclick="setRotation(${index}, 0, this)">0°</button>
                             <button type="button" onclick="setRotation(${index}, 270, this)">90°</button>
                             <button type="button" onclick="setRotation(${index}, 180, this)">180°</button>
                             <button type="button" onclick="setRotation(${index}, 90, this)">270°</button>
                             <input type="hidden" id="rotation-${index}" name="rotations" value="0">
                         </div>
                         <p>Metadata<br>
-                            Blickrichtung: ${metadata.Blickrichtung}<br>
-                            GPS-Koordinaten: ${metadata['GPS-Koordinaten']}<br>
                             Aufnahmedatum: ${metadata.Aufnahmedatum}<br>
+                            GPS-Koordinaten: ${metadata['GPS-Koordinaten']}<br>
+                            Blickrichtung: ${metadata.Blickrichtung}<br>
                         </p>
                     `;
                     imageContainer.appendChild(imageItem);
                 });
             }).catch(error => {
+                uploadLoading.style.display = 'none';
                 console.error('Error uploading images:', error);
                 alert('Failed to upload images');
             });
@@ -253,11 +267,16 @@
 
         function setRotation(index, angle, button) {
             const rotationInput = document.getElementById(`rotation-${index}`);
-            rotationInput.value = angle;
-            // Remove selected class from all buttons
-            button.parentElement.querySelectorAll('button').forEach(btn => btn.classList.remove('selected'));
-            // Add selected class to the clicked button
-            button.classList.add('selected');
+            if (rotationInput.value == angle) {
+                rotationInput.value = 0;
+                button.classList.remove('selected');
+            } else {
+                rotationInput.value = angle;
+                // Remove selected class from all buttons
+                button.parentElement.querySelectorAll('button').forEach(btn => btn.classList.remove('selected'));
+                // Add selected class to the clicked button
+                button.classList.add('selected');
+            }
         }
 
         document.getElementById('previewForm').addEventListener('submit', function(event) {
@@ -280,9 +299,9 @@
 
             document.querySelectorAll('.image-item').forEach(item => {
                 const metadata = {
-                    'Blickrichtung': item.querySelector('p').innerText.split('\n')[1].split(': ')[1],
+                    'Aufnahmedatum': item.querySelector('p').innerText.split('\n')[1].split(': ')[1],
                     'GPS-Koordinaten': item.querySelector('p').innerText.split('\n')[2].split(': ')[1],
-                    'Aufnahmedatum': item.querySelector('p').innerText.split('\n')[3].split(': ')[1]
+                    'Blickrichtung': item.querySelector('p').innerText.split('\n')[3].split(': ')[1]
                 };
                 formData.metadata.push(JSON.stringify(metadata));
             });
@@ -335,7 +354,7 @@
             
             console.log('Attempting to save:', filename);
             
-            fetch('/downloads/' + filename)
+            fetch('/uploads/' + filename)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
