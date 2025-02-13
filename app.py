@@ -418,6 +418,7 @@ class GeneratePDFRequest(BaseModel):
     images: List[str]
     rotations: List[int]
     metadata: List[str]
+    include: List[bool]  # Add include field
 
 @app.post("/generate_pdf", response_model=GeneratePDFResponse)
 async def generate_pdf(form_data: GeneratePDFRequest):
@@ -437,7 +438,7 @@ async def generate_pdf(form_data: GeneratePDFRequest):
         safe_title = sanitize_filename(form_data.title)
         
         image_objects = []
-        decoded_metadata = [json.loads(meta) for meta in form_data.metadata]
+        decoded_metadata = []
 
         # Process images (unchanged)
         processed_images = set()
@@ -445,7 +446,9 @@ async def generate_pdf(form_data: GeneratePDFRequest):
         # Print the processed_images set in the terminal
         print("Processed Images:", processed_images)
         
-        for img_path, rotation in zip(form_data.images, form_data.rotations):
+        for img_path, rotation, include, meta in zip(form_data.images, form_data.rotations, form_data.include, form_data.metadata):
+            if not include:
+                continue
             try:
                 # Decode the URL-encoded image path
                 filename = os.path.basename(img_path.replace('/', os.sep))
@@ -466,6 +469,7 @@ async def generate_pdf(form_data: GeneratePDFRequest):
                         logging.debug(f"Rotating image {filename} by {rotation} degrees")
                         processed_img = rotate_image(processed_img, int(rotation))
                     image_objects.append(processed_img.copy())
+                    decoded_metadata.append(json.loads(meta))
                     processed_images.add(abs_img_path)
             except Exception as e:
                 logging.error(f"Error processing image {img_path}: {e}")
