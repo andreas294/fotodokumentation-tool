@@ -159,6 +159,38 @@
             text-align: center;
             margin-top: 20px;
         }
+        .exclude-button {
+            background-color: #FFFFFF; /* White background */
+            color: #FF0000; /* Red color */
+            border: none;
+            cursor: pointer;
+            transition: color 0.3s ease, background-color 0.3s ease, transform 0.1s ease;
+            font-size: 14px; /* Decreased font size */
+            font-weight: bold;
+            position: absolute;
+            top: 5px; /* Adjusted top position */
+            right: 5px; /* Adjusted right position */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+            width: 20px; /* Set width */
+            height: 20px; /* Set height */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px; /* Added border radius */
+        }
+        .exclude-button:hover {
+            color: #FFFFFF; /* White color */
+            background-color: #FF0000; /* Red background */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .exclude-button:active {
+            color: #FFFFFF; /* White color */
+            background-color: #990000; /* Even darker red background */
+            transform: scale(0.95);
+        }
+        .exclude-button.selected {
+            color: #32CD32; /* LimeGreen color */
+        }
     </style>
 </head>
 <body>
@@ -242,6 +274,7 @@
                     imageItem.className = 'image-item';
                     const metadata = data.metadata[index];
                     imageItem.innerHTML = `
+                        <button type="button" class="exclude-button" id="exclude-${index}" onclick="toggleInclude(${index}, this)">✖</button>
                         <img src="${image}" alt="Image"><br>
                         <label>Rotations (clockwise):</label>
                         <div class="rotation-buttons">
@@ -250,6 +283,7 @@
                             <button type="button" onclick="setRotation(${index}, 90, this)">270°</button>
                             <input type="hidden" id="rotation-${index}" name="rotations" value="0">
                         </div>
+                        <input type="hidden" id="include-${index}" name="include" value="true">
                         <p>Metadata<br>
                             Aufnahmedatum: ${metadata.Aufnahmedatum}<br>
                             GPS-Koordinaten: ${metadata['GPS-Koordinaten']}<br>
@@ -279,6 +313,18 @@
             }
         }
 
+        function toggleInclude(index, button) {
+            const includeInput = document.getElementById(`include-${index}`);
+            const imageItem = button.closest('.image-item');
+            if (includeInput.value === "true") {
+                includeInput.value = "false";
+                imageItem.style.display = 'none';
+            } else {
+                includeInput.value = "true";
+                imageItem.style.display = 'block';
+            }
+        }
+
         document.getElementById('previewForm').addEventListener('submit', function(event) {
             event.preventDefault();
             const formData = {
@@ -286,7 +332,8 @@
                 date: document.getElementById('preview-date').value,
                 images: [],
                 rotations: [],
-                metadata: []
+                metadata: [],
+                include: []
             };
 
             document.querySelectorAll('.image-item img').forEach(img => {
@@ -297,13 +344,14 @@
                 formData.rotations.push(input.value);
             });
 
-            document.querySelectorAll('.image-item').forEach(item => {
+            document.querySelectorAll('.image-item').forEach((item, index) => {
                 const metadata = {
                     'Aufnahmedatum': item.querySelector('p').innerText.split('\n')[1].split(': ')[1],
                     'GPS-Koordinaten': item.querySelector('p').innerText.split('\n')[2].split(': ')[1],
                     'Blickrichtung': item.querySelector('p').innerText.split('\n')[3].split(': ')[1]
                 };
                 formData.metadata.push(JSON.stringify(metadata));
+                formData.include.push(document.getElementById(`include-${index}`).value === "true");
             });
 
             console.log('Submitting with:', formData);
